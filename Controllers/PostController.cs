@@ -6,8 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DotnetAPI.Controllers
 {
-
-    [Authorize] //Microsoft.AspNetCore.Authorization
+    // [Authorize] //Microsoft.AspNetCore.Authorization
     [ApiController] // Microsoft.AspNetCore.Mvc
     [Route("[controller]")]
     public class PostController : ControllerBase // dont forget to inherit from ControllerBase
@@ -18,16 +17,30 @@ namespace DotnetAPI.Controllers
             _dapper = new DataContextDapper(config);
         }
 
-        [HttpGet("Posts")]
-        public IEnumerable<Post> GetPosts()
+        [HttpGet("Posts/{postId}/{userId}/{searchParam}")]
+        public IEnumerable<Post> GetPosts(int postId = 0, int userId = 0, string searchParam = "None")
         {
-            string sql = @"SELECT [PostId],
-                [UserId],
-                [PostTitle],
-                [PostContent],
-                [PostCreated],
-                [PostUpdated] 
-            FROM TutorialAppSchema.Posts";
+            string sql = @"EXEC TutorialAppSchema.spPosts_Get";
+            string parameters = "";
+
+            if (postId != 0)
+            {
+                parameters += ", @PostId =" + postId.ToString();
+            }
+            if (userId != 0)
+            {
+                parameters += ", @UserId =" + userId.ToString();
+            }
+            if (searchParam.ToLower() != "None")
+            {
+                parameters += ", @SearchValue ='" + searchParam + "'";
+            }
+
+            if (parameters.Length > 0)
+            {
+                sql += parameters.Substring(1); // get rid of first comma (,)
+            }
+
 
             return _dapper.LoadData<Post>(sql);
         }
@@ -66,33 +79,26 @@ namespace DotnetAPI.Controllers
         public IEnumerable<Post> GetMyPosts()
         {
             // get a post back just their post.
-            string sql = @"SELECT [PostId],
-                [UserId],
-                [PostTitle],
-                [PostContent],
-                [PostCreated],
-                [PostUpdated] 
-            FROM TutorialAppSchema.Posts
-                WHERE UserId = " + this.User.FindFirst("userId")?.Value;
+            string sql = @"EXEC TutorialAppSchema.spPosts_Get @UserId = " +
+                this.User.FindFirst("userId")?.Value;
             // this.User is the user of this controller that can also pull the token.
 
             return _dapper.LoadData<Post>(sql);
         }
 
-        [HttpPost("Post")]
-        public IActionResult AddPost(PostToAddDto postToAdd)
+        [HttpPut("UpsertPost")]
+        public IActionResult AddPost(Post postToUpsert)
         {
-            string sql = @"
-            INSERT INTO TutorialAppSchema.Posts(
-                [UserId],
-                [PostTitle],
-                [PostContent],
-                [PostCreated],
-                [PostUpdated]) VALUES ( "
-                + this.User.FindFirst("userId")?.Value
-                + ",'" + postToAdd.PostTitle
-                + "','" + postToAdd.PostContent
-                + "', GETDATE(), GETDATE())";
+            string sql = @"EXEC TutorialAppSchema.spPosts_Upsert
+                @UserId INT = " + this.User.FindFirst("userId")?.Value +
+                ", @PostTitle = '" + postToUpsert.PostTitle +
+                "', @PostContent = '" + postToUpsert.PostContent + "'";
+                
+            if (postToUpsert.PostId > 0)
+            {
+                sql += ", @PostId = " + postToUpsert.PostId;
+            }
+
             if (_dapper.ExecuteSql(sql))
             {
                 return Ok();

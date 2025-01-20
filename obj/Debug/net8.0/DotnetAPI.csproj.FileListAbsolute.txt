@@ -74,3 +74,4 @@ C:\Repository\dotnet-course-code\DotnetAPI\bin\Debug\net8.0\Microsoft.EntityFram
 C:\Repository\dotnet-course-code\DotnetAPI\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Relational.dll
 C:\Repository\dotnet-course-code\DotnetAPI\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.SqlServer.dll
 C:\Repository\dotnet-course-code\DotnetAPI\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Repository\dotnet-course-code\DotnetAPI\obj\Debug\net8.0\DotnetAPI.sourcelink.json

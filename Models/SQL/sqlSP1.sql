@@ -9,7 +9,7 @@ ALTER PROCEDURE TutorialAppSchema.spUserSalary_Get
 AS
 BEGIN
     /* OLD VERSION OF DROP TEMP TABLE IF EXISTS */
-    -- IF OBJECT_ID('temp..#AverageDeptSalary') IS NOT NULL
+    -- IF OBJECT_ID('temp..#AverageDeptSalary', 'U') IS NOT NULL -- passing U as 2nd param is will return NOT null if the 
     --     BEGIN
     --         DROP TABLE IF EXISTS #AverageDepSalary
     --     END
@@ -28,7 +28,7 @@ BEGIN
         GROUP BY UserJobInfo.Department
 
     CREATE CLUSTERED INDEX cix_AverageDeptSalary_Department ON #AverageDepSalary(Department)
-    -- this clustered index will speed up the process time for bigger data
+    -- this clustered index will speed up the search time for bigger data based on department
 
     SELECT [Users].[UserId],
         [Users].[FirstName],
@@ -46,8 +46,9 @@ BEGIN
             ON UserSalary.UserId = Users.UserId
         LEFT JOIN TutorialAppSchema.UserJobInfo AS UserJobInfo
             ON UserJobInfo.UserId = Users.UserId
-        LEFT JOIN #AverageDepSalary AS AvgSalary  --User the #TEMP TABLE HERE!
+        LEFT JOIN #AverageDepSalary AS AvgSalary  --Use the #TEMP TABLE HERE!
             ON AvgSalary.Department = UserJobInfo.Department
+            /* Replaced the below commented code by the temptable #AverageDepSalary */
         -- OUTER APPLY (
         --     SELECT UserJobInfo2.Department,
         --         AVG(UserSalary2.Salary) AS AvgSalary
